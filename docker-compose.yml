@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      # url para se conectar ao banco
+      POSTGRES_URL: postgres://admin:password@localhost:5432/smart-brain
+      POSTGRES_DB: smart-brain
+      POSTGRES_HOST: postgres
+    build: ./postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+
+  # name
+  api:
+    container_name: backend
+    # passar image busca diretamente no docker qual imagem vai inicializar
+    # image: node:16.17.1
+    # build passa o arquivo dockerfile para inicializar
+    build: ./
+    command: npm start
+    working_dir: /usr/src/api-smart-brain
+    environment:
+      POSTGRES_URI: postgres://admin:password@postgres:5432/smart-brain
+      REDIS_URI: redis://redis:6379
+    ports:
+      - "3000:3000"
+    # permite acessar os arquivos do container, assim o container vê as alterações não precisando rebuildar
+    # quando as alterações são nos arquivos (fora do docker compose e docker file)
+    # passa a pasta atual (./) e depois a pasta para mapear, nesse caso /usr/src....
+    volumes:
+      - ./:/usr/src/api-smart-brain
